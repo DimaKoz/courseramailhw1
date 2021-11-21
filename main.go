@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // Node represents a node of a tree of files.
@@ -28,34 +28,14 @@ type FileInfo struct {
 	size int64
 }
 
-// Join concatenates the elements to create a single string.
-func concatStrings(strings ...string) (string, error) {
-	var buf bytes.Buffer
-	var err error
-	for _, item := range strings {
-		_, err = buf.WriteString(item)
-		if err != nil {
-			return "", err
-		}
-	}
-	return buf.String(), err
-}
 
 // Return a string presentation of the FileInfo
 // or empty string if any error happened
 func (fileInfo FileInfo) String() string {
 	if fileInfo.size == 0 {
-		result, err := concatStrings(fileInfo.name, " (empty)")
-		if err != nil {
-			return ""
-		}
-		return result
+		return strings.Join([]string{fileInfo.name, " (empty)"},"")
 	}
-	result, err := concatStrings(fileInfo.name, " (", strconv.FormatInt(fileInfo.size, 10), "b)")
-	if err != nil {
-		return ""
-	}
-	return result
+	return strings.Join([]string{fileInfo.name, " (", strconv.FormatInt(fileInfo.size, 10), "b)"},"")
 }
 
 // Return a string presentation of the DirInfo
@@ -106,12 +86,8 @@ func printDir(out io.Writer, nodes []Node, prefixes []string) error {
 		return nil
 	}
 
-	totalPrefixes, err := concatStrings(prefixes...)
-	if err != nil {
-		return err
-	}
-
-	_, err = fmt.Fprintf(out, "%s", totalPrefixes)
+	totalPrefixes := strings.Join(prefixes,"")
+	_, err := fmt.Fprintf(out, "%s", totalPrefixes)
 	if err != nil {
 		return err
 	}
